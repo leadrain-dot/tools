@@ -345,8 +345,9 @@
           <input type="radio" name="digits" id="digits-2" value="2"><label for="digits-2">2</label>
           <input type="radio" name="digits" id="digits-3" value="3"><label for="digits-3">3</label>
           <input type="radio" name="digits" id="digits-4" value="4"><label for="digits-4">4</label>
+          <input type="radio" name="digits" id="digits-5" value="5"><label for="digits-5">5</label>
         </div>
-        <p class="hint">Collés à la fin d'un mot tiré au hasard.</p>
+        <p class="hint">Chacun placé au hasard, au début ou à la fin d'un mot.</p>
       </fieldset>
 
       <fieldset class="field">
@@ -355,10 +356,12 @@
           <input type="radio" name="symbols" id="symbols-1" value="1"><label for="symbols-1">1</label>
           <input type="radio" name="symbols" id="symbols-2" value="2"><label for="symbols-2">2</label>
           <input type="radio" name="symbols" id="symbols-3" value="3"><label for="symbols-3">3</label>
+          <input type="radio" name="symbols" id="symbols-4" value="4"><label for="symbols-4">4</label>
+          <input type="radio" name="symbols" id="symbols-5" value="5"><label for="symbols-5">5</label>
         </div>
         <label class="visually-hidden" for="symbol-set">Caractères spéciaux autorisés</label>
         <input class="text-input" id="symbol-set" name="symbolSet" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="symbol-hint symbol-error">
-        <p class="hint" id="symbol-hint">Ceux qu'on peut tirer. Retire ceux qu'un site refuse.</p>
+        <p class="hint" id="symbol-hint">Placés au hasard comme les chiffres, parmi ceux du champ. Retire ceux qu'un site refuse.</p>
         <p class="error" id="symbol-error" hidden>Garde au moins un caractère spécial, par exemple ! ou #.</p>
       </fieldset>
     </div>
@@ -394,8 +397,9 @@
 (() => {
   'use strict';
 
-  const STORE_KEY = 'caisse-a-outils.passphrase.v1';
-  const DEFAULTS = { words: 5, style: 'vrais', sep: '-', caps: 'initiales', digits: 2, symbols: 1, symbolSet: '!#$%&*?@+=', short: false };
+  const STORE_KEY = 'caisse-a-outils.passphrase.v2';
+  const DEFAULTS = { words: 5, style: 'vrais', sep: '-', caps: 'initiales', digits: 3, symbols: 3, symbolSet: '!#$%&*?@+=', short: false };
+  const MAX_EXTRAS = 5;
   const SEPARATORS = { '-': '-', '.': '.', '_': '_', espace: ' ', aucun: '', hasard: null };
   const STYLES = ['vrais', 'inventes'];
   const CAPS = ['aucune', 'initiales', 'mot'];
@@ -445,8 +449,8 @@
       style: STYLES.includes(c.style) ? c.style : DEFAULTS.style,
       sep: Object.hasOwn(SEPARATORS, c.sep) ? c.sep : DEFAULTS.sep,
       caps: CAPS.includes(c.caps) ? c.caps : DEFAULTS.caps,
-      digits: int(c.digits, 1, 4, DEFAULTS.digits),
-      symbols: int(c.symbols, 1, 3, DEFAULTS.symbols),
+      digits: int(c.digits, 1, MAX_EXTRAS, DEFAULTS.digits),
+      symbols: int(c.symbols, 1, MAX_EXTRAS, DEFAULTS.symbols),
       symbolSet: symbolPool(c.symbolSet).length ? c.symbolSet : DEFAULTS.symbolSet,
       short: c.short === true,
     };
@@ -468,16 +472,21 @@
   // Une phrase = une suite de segments typés, pour colorer chiffres et symboles à l'affichage.
   function generate(cfg, pool) {
     const n = cfg.words;
-    const parts = Array.from({ length: n }, () => ({ word: drawWord(cfg), extras: [] }));
+    const parts = Array.from({ length: n }, () => ({ word: drawWord(cfg), before: [], after: [] }));
 
     if (cfg.caps === 'initiales') parts.forEach(p => { p.word = p.word[0].toUpperCase() + p.word.slice(1); });
     if (cfg.caps === 'mot') { const p = parts[randomInt(n)]; p.word = p.word.toUpperCase(); }
 
-    let digits = '';
-    for (let i = 0; i < cfg.digits; i++) digits += randomInt(10);
-    parts[randomInt(n)].extras.push({ type: 'd', text: digits });
-
-    for (let i = 0; i < cfg.symbols; i++) parts[randomInt(n)].extras.push({ type: 's', text: pick(pool) });
+    // Chaque chiffre et chaque symbole est placé seul, au début ou à la fin d'un mot tiré au hasard.
+    // Les mots restent entiers pour rester faciles à retenir.
+    const place = extra => {
+      const slot = randomInt(2 * n);
+      const p = parts[slot >> 1];
+      if (slot & 1) p.after.push(extra);
+      else p.before.push(extra);
+    };
+    for (let i = 0; i < cfg.digits; i++) place({ type: 'd', text: String(randomInt(10)) });
+    for (let i = 0; i < cfg.symbols; i++) place({ type: 's', text: pick(pool) });
 
     const segments = [];
     parts.forEach((p, i) => {
@@ -485,19 +494,26 @@
         const sep = SEPARATORS[cfg.sep] ?? pick(pool);
         if (sep) segments.push({ type: 'sep', text: sep });
       }
-      segments.push({ type: 'w', text: p.word }, ...p.extras);
+      segments.push(...p.before, { type: 'w', text: p.word }, ...p.after);
     });
     return segments;
   }
 
   const toText = segments => segments.map(s => s.text).join('');
 
+  const log2Factorial = k => { let b = 0; for (let i = 2; i <= k; i++) b += Math.log2(i); return b; };
+
   function entropyBits(cfg, poolSize) {
     const n = cfg.words;
     let bits = n * bitsPerWord(cfg);
     if (cfg.caps === 'mot') bits += Math.log2(n);
-    bits += cfg.digits * Math.log2(10) + Math.log2(n);
-    bits += cfg.symbols * (Math.log2(poolSize) + Math.log2(n));
+    // Sans séparateur visible fixe, la fin d'un mot et le début du suivant se confondent :
+    // on ne compte alors que n + 1 emplacements au lieu de 2n, par prudence.
+    const slots = cfg.sep === 'aucun' || cfg.sep === 'hasard' ? n + 1 : 2 * n;
+    // k caractères (valeur + emplacement) sans ordre entre eux : k·log2(valeurs × emplacements) − log2(k!).
+    const scattered = (k, values) => k * Math.log2(values * slots) - log2Factorial(k);
+    bits += scattered(cfg.digits, 10);
+    bits += scattered(cfg.symbols, poolSize);
     if (cfg.sep === 'hasard') bits += (n - 1) * Math.log2(poolSize);
     return bits;
   }
