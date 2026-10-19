@@ -1,6 +1,6 @@
 /* Caisse à outils : styles partagés par toutes les pages.
-   Layout : une colonne centrée, un bandeau de chantier en haut,
-   chaque outil rangé comme un tiroir avec son étiquette. */
+   Layout : une colonne centrée, titres fins, chaque outil rangé
+   comme un tiroir avec son étiquette. */
 :root {
   --bg: #eceef0;
   --surface: #ffffff;
@@ -14,7 +14,6 @@
   --tape: #1d2126;
   --on-tape: #f2f3f5;
   --ring: #16191d;
-  --stripe: #16191d;
   --digit: #1d5fc4;
   --symbol: #b4321f;
   --weak: #c2352b;
@@ -22,7 +21,7 @@
   --good: #2f8f4e;
   --shadow: rgba(22, 25, 29, 0.28);
 
-  --f-display: "Big Shoulders Stencil", "Arial Narrow", Impact, sans-serif;
+  --f-display: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-body: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
@@ -30,7 +29,7 @@
   --step-0: 1rem;
   --step-1: 1.25rem;
   --step-2: 1.75rem;
-  --step-4: clamp(2.75rem, 9vw, 4.5rem);
+  --step-4: clamp(2.5rem, 7vw, 3.75rem);
 
   --radius: 10px;
   --gutter: clamp(16px, 4vw, 32px);
@@ -51,7 +50,6 @@
     --tape: #2b3037;
     --on-tape: #f2f3f5;
     --ring: #f2c200;
-    --stripe: #0b0c0e;
     --digit: #7fb0ff;
     --symbol: #ff8a73;
     --weak: #f0675b;
@@ -75,7 +73,6 @@
   --tape: #2b3037;
   --on-tape: #f2f3f5;
   --ring: #f2c200;
-  --stripe: #0b0c0e;
   --digit: #7fb0ff;
   --symbol: #ff8a73;
   --weak: #f0675b;
@@ -127,10 +124,7 @@ a { color: inherit; }
 
 /* En-tête */
 
-.hazard {
-  height: 8px;
-  background: repeating-linear-gradient(-45deg, var(--accent) 0 12px, var(--stripe) 12px 24px);
-}
+.site-header { border-bottom: 1px solid var(--line); }
 
 .site-header .wrap {
   display: flex;
@@ -141,9 +135,8 @@ a { color: inherit; }
 }
 
 .wordmark {
-  font: 800 var(--step-1) / 1 var(--f-display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font: 700 1.0625rem / 1 var(--f-display);
+  letter-spacing: -0.01em;
   text-decoration: none;
 }
 
@@ -167,9 +160,8 @@ a { color: inherit; }
 
 .page-intro h1 {
   margin: 0;
-  font: 800 var(--step-4) / 0.92 var(--f-display);
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+  font: 300 var(--step-4) / 1.05 var(--f-display);
+  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 
@@ -182,9 +174,8 @@ a { color: inherit; }
 
 .section-title {
   margin: 0;
-  font: 800 var(--step-2) / 1 var(--f-display);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font: 400 var(--step-2) / 1.15 var(--f-display);
+  letter-spacing: -0.015em;
 }
 
 /* Étiquette façon étiqueteuse */
@@ -291,6 +282,55 @@ a { color: inherit; }
 }
 
 .mono { font-family: var(--f-mono); }
+
+/* Tableaux de données */
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.table-wrap.is-tall { max-height: 26rem; }
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table th,
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.data-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.data-table .num {
+  font-family: var(--f-mono);
+  text-align: right;
+}
+
+.data-table tbody tr:last-child td { border-bottom: 0; }
+
+.data-table tr.is-ref td {
+  background: var(--well);
+  font-weight: 700;
+}
 
 /* Pied de page */
 
