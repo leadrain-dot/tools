@@ -1,0 +1,319 @@
+/* Caisse à outils : styles partagés par toutes les pages.
+   Layout : une colonne centrée, un bandeau de chantier en haut,
+   chaque outil rangé comme un tiroir avec son étiquette. */
+:root {
+  --bg: #eceef0;
+  --surface: #ffffff;
+  --well: #e0e3e7;
+  --ink: #16191d;
+  --muted: #59616b;
+  --line: #cfd4da;
+  --accent: #f2c200;
+  --accent-strong: #dcb000;
+  --on-accent: #16191d;
+  --tape: #1d2126;
+  --on-tape: #f2f3f5;
+  --ring: #16191d;
+  --stripe: #16191d;
+  --digit: #1d5fc4;
+  --symbol: #b4321f;
+  --weak: #c2352b;
+  --fair: #b86a00;
+  --good: #2f8f4e;
+  --shadow: rgba(22, 25, 29, 0.28);
+
+  --f-display: "Big Shoulders Stencil", "Arial Narrow", Impact, sans-serif;
+  --f-body: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.75rem;
+  --step-4: clamp(2.75rem, 9vw, 4.5rem);
+
+  --radius: 10px;
+  --gutter: clamp(16px, 4vw, 32px);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121417;
+    --surface: #1b1e23;
+    --well: #0c0e10;
+    --ink: #e8eaed;
+    --muted: #9aa3ad;
+    --line: #2f343b;
+    --accent: #f2c200;
+    --accent-strong: #ffd633;
+    --on-accent: #121417;
+    --tape: #2b3037;
+    --on-tape: #f2f3f5;
+    --ring: #f2c200;
+    --stripe: #0b0c0e;
+    --digit: #7fb0ff;
+    --symbol: #ff8a73;
+    --weak: #f0675b;
+    --fair: #f0a23b;
+    --good: #4cc27a;
+    --shadow: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #121417;
+  --surface: #1b1e23;
+  --well: #0c0e10;
+  --ink: #e8eaed;
+  --muted: #9aa3ad;
+  --line: #2f343b;
+  --accent: #f2c200;
+  --accent-strong: #ffd633;
+  --on-accent: #121417;
+  --tape: #2b3037;
+  --on-tape: #f2f3f5;
+  --ring: #f2c200;
+  --stripe: #0b0c0e;
+  --digit: #7fb0ff;
+  --symbol: #ff8a73;
+  --weak: #f0675b;
+  --fair: #f0a23b;
+  --good: #4cc27a;
+  --shadow: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 var(--step-0) / 1.55 var(--f-body);
+}
+
+main { flex: 1; }
+
+a { color: inherit; }
+
+.wrap {
+  width: 100%;
+  max-width: 48rem;
+  margin-inline: auto;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* En-tête */
+
+.hazard {
+  height: 8px;
+  background: repeating-linear-gradient(-45deg, var(--accent) 0 12px, var(--stripe) 12px 24px);
+}
+
+.site-header .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 18px;
+}
+
+.wordmark {
+  font: 800 var(--step-1) / 1 var(--f-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.site-nav a {
+  color: var(--muted);
+  font-size: var(--step--1);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-nav a:hover { color: var(--ink); }
+
+/* Titre de page */
+
+.page-intro {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding-block: 28px 32px;
+}
+
+.page-intro h1 {
+  margin: 0;
+  font: 800 var(--step-4) / 0.92 var(--f-display);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: 1.0625rem;
+}
+
+.section-title {
+  margin: 0;
+  font: 800 var(--step-2) / 1 var(--f-display);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* Étiquette façon étiqueteuse */
+
+.tape {
+  display: inline-block;
+  padding: 5px 9px 4px;
+  border-radius: 2px;
+  background: var(--tape);
+  color: var(--on-tape);
+  font: 600 0.75rem / 1 var(--f-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* Boutons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 44px;
+  padding: 0.75em 1.15em;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: 700 var(--step-0) / 1 var(--f-body);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.btn:hover { border-color: var(--ink); }
+
+.btn-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn-primary:hover {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+}
+
+.btn-icon {
+  width: 44px;
+  padding: 0;
+  font-size: 1.25rem;
+}
+
+.btn-small {
+  min-height: 36px;
+  padding: 0.5em 0.85em;
+  font-size: var(--step--1);
+}
+
+/* Contrôle segmenté (boutons radio) */
+
+.seg {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--well);
+}
+
+.seg input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.seg label {
+  min-width: 2.75rem;
+  padding: 8px 12px;
+  border-radius: 7px;
+  color: var(--muted);
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.seg label:hover { color: var(--ink); }
+
+.seg input:checked + label {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px var(--shadow);
+}
+
+.seg input:focus-visible + label {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.mono { font-family: var(--f-mono); }
+
+/* Pied de page */
+
+.site-footer {
+  margin-top: 72px;
+  border-top: 1px solid var(--line);
+}
+
+.site-footer .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding-block: 24px;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+.site-footer p { margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

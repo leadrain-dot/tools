@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caisse à outils</title>
+<meta name="description" content="Petits outils du quotidien qui tournent entièrement dans le navigateur.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:wght@400;700&family=Big+Shoulders+Stencil:wght@800&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .drawer-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .drawer-count {
+    color: var(--muted);
+    font: 600 var(--step--1) / 1 var(--f-mono);
+  }
+
+  .drawers {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .drawer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+
+  .drawer:hover {
+    border-color: var(--ink);
+    transform: translateY(-1px);
+  }
+
+  .drawer-body {
+    display: grid;
+    justify-items: start;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .drawer-name {
+    font-size: var(--step-1);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .drawer-desc {
+    color: var(--muted);
+  }
+
+  /* La poignée du tiroir */
+  .drawer-pull {
+    width: 40px;
+    height: 12px;
+    border: 2px solid var(--muted);
+    border-top: 0;
+    border-radius: 0 0 8px 8px;
+    transition: border-color 0.15s;
+  }
+
+  .drawer:hover .drawer-pull { border-color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="hazard" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="./">Caisse à outils</a>
+    <nav class="site-nav" aria-label="Liens"><a href="https://github.com/leadrain-dot/tools">Code source</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-intro">
+    <h1>Caisse à outils</h1>
+    <p class="lede">Des petits outils du quotidien, rangés au même endroit. Chacun tourne entièrement dans ton navigateur : ce que tu y tapes ou génères ne part nulle part.</p>
+  </div>
+
+  <section aria-labelledby="drawers-title">
+    <div class="drawer-head">
+      <h2 class="section-title" id="drawers-title">Dans la caisse</h2>
+      <span class="drawer-count" id="drawer-count">1 outil</span>
+    </div>
+    <ul class="drawers" id="drawers">
+      <li>
+        <a class="drawer" href="passphrase/">
+          <span class="drawer-body">
+            <span class="tape">Sécurité</span>
+            <span class="drawer-name">Passphrases</span>
+            <span class="drawer-desc">Des phrases de passe en français, avec chiffres et caractères spéciaux, et le nombre de mots que tu veux.</span>
+          </span>
+          <span class="drawer-pull" aria-hidden="true"></span>
+        </a>
+      </li>
+    </ul>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>Pages statiques, sans compte ni pisteur.</p>
+    <p><a href="https://github.com/leadrain-dot/tools">github.com/leadrain-dot/tools</a></p>
+  </div>
+</footer>
+
+<script>
+  // Le compteur suit la liste, pour ne pas l'oublier en ajoutant un outil.
+  const n = document.querySelectorAll('#drawers > li').length;
+  document.getElementById('drawer-count').textContent = n + (n > 1 ? ' outils' : ' outil');
+</script>
+</body>
+</html>
