@@ -304,6 +304,28 @@
     </section>
   </div>
 
+  <section class="block" aria-labelledby="equiv-title">
+    <div class="block-head">
+      <h2 class="section-title" id="equiv-title">Équivalences 3 000 m</h2>
+    </div>
+    <p class="hint" id="equiv-note"></p>
+    <div class="table-wrap is-tall" id="equiv-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col" class="num">3 000 m</th>
+            <th scope="col" class="num">Min/km</th>
+            <th scope="col" class="num">5 km</th>
+            <th scope="col" class="num">10 km</th>
+            <th scope="col" class="num">Semi</th>
+            <th scope="col" class="num">Marathon</th>
+          </tr>
+        </thead>
+        <tbody id="equiv"></tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="block" aria-labelledby="zones-title">
     <div class="block-head">
       <h2 class="section-title" id="zones-title">Allures d'entraînement</h2>
@@ -338,6 +360,7 @@
     <summary>Comment c'est calculé</summary>
     <p>L'allure, c'est le temps divisé par la distance, et la vitesse en km/h vaut 3 600 divisé par l'allure en secondes. Quand tu changes la distance, on garde la dernière valeur que tu as tapée : ton temps ou ton allure.</p>
     <p>Les prédictions suivent la formule de Peter Riegel : temps visé = ton temps × (distance visée ÷ ta distance)<sup>1,06</sup>. Elle marche bien entre quelques minutes et environ 4 heures d'effort. Sur marathon, elle est souvent optimiste si tu manques de sorties longues.</p>
+    <p>Le tableau d'équivalences applique la même formule à des temps ronds sur 3 000 m, la distance classique d'un test sur piste.</p>
     <p>L'estimation de VMA cherche la distance que tu tiendrais 6 minutes d'après la même formule, puis la convertit en km/h. Les zones sont les repères habituels en pourcentage de VMA ; ils varient d'un coureur à l'autre.</p>
     <p>Rien ne quitte la page. Tes dernières valeurs sont mémorisées dans ce navigateur.</p>
   </details>
@@ -360,12 +383,16 @@
   const MARATHON = 42.195;
   const RIEGEL = 1.06;
   const PRESETS = [
+    { km: 3, label: '3 000 m' },
     { km: 5, label: '5 km' },
     { km: 10, label: '10 km' },
     { km: SEMI, label: 'Semi' },
     { km: MARATHON, label: 'Marathon' },
   ];
   const PREDICTED = [5, 10, SEMI, MARATHON];
+  // Abaque : temps sur 3 000 m de 9:00 à 20:00, toutes les 30 s.
+  const EQUIV_KM = 3;
+  const EQUIV_TIMES = Array.from({ length: 23 }, (_, i) => 540 + i * 30);
   const ZONES = [
     { name: 'Récupération', lo: 55, hi: 60, use: 'Footing très lent, retour au calme' },
     { name: 'Endurance fondamentale', lo: 60, hi: 70, use: 'La base : footings et sorties longues' },
@@ -578,6 +605,40 @@
     }));
   }
 
+  let equivMarked = null;
+
+  function renderEquivalences() {
+    const mine = same(state.dist, EQUIV_KM) ? state.time : riegel(state.time, state.dist, EQUIV_KM);
+    let marked = -1;
+    EQUIV_TIMES.forEach((t, i) => { if (Math.abs(t - mine) <= 15) marked = i; });
+
+    $('equiv').replaceChildren(...EQUIV_TIMES.map((t, i) => {
+      const tr = document.createElement('tr');
+      if (i === marked) tr.className = 'is-ref';
+      tr.append(
+        cell(fmtDuration(t), 'num'),
+        cell(fmtDuration(t / EQUIV_KM), 'num'),
+        ...PREDICTED.map(km => cell(fmtDuration(riegel(t, EQUIV_KM, km)), 'num')),
+      );
+      return tr;
+    }));
+
+    const where = same(state.dist, EQUIV_KM)
+      ? `ta course (${fmtDuration(mine)})`
+      : `ta course (≈ ${fmtDuration(mine)} sur 3 000 m)`;
+    $('equiv-note').textContent = marked >= 0
+      ? `Trouve ton temps sur 3 000 m et lis la ligne. En gras, celle de ${where}.`
+      : `Trouve ton temps sur 3 000 m et lis la ligne. ${where[0].toUpperCase() + where.slice(1)} sort du tableau, qui va de 9:00 à 20:00.`;
+
+    // Fait défiler le tableau (pas la page) jusqu'à la ligne en gras quand elle change.
+    if (marked >= 0 && marked !== equivMarked) {
+      const wrap = $('equiv-wrap');
+      const row = $('equiv').children[marked];
+      wrap.scrollTop = row.offsetTop - wrap.clientHeight / 2 + row.offsetHeight / 2;
+    }
+    equivMarked = marked;
+  }
+
   function renderZones() {
     const scale = pct => ((pct - 50) / (105 - 50)) * 100;
     $('zones').replaceChildren(...ZONES.map(z => {
@@ -618,6 +679,7 @@
     renderSummary();
     renderSplits();
     renderPredictions();
+    renderEquivalences();
     renderZones();
     save();
   }
