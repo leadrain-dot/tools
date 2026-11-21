@@ -108,6 +108,8 @@ a { color: inherit; }
   padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
 }
 
+.wrap.wrap-wide { max-width: 68rem; }
+
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 3px;

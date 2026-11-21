@@ -21,6 +21,23 @@
     box-shadow: 0 14px 34px -24px var(--shadow);
   }
 
+  .calc { max-width: 46rem; }
+
+  .data-table .sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+  }
+
+  .data-table th.sticky-col { z-index: 2; }
+
+  .data-table tr.is-minute .sticky-col { font-weight: 700; }
+
+  .data-table .is-col { font-weight: 700; }
+
+  .data-table th.is-col { color: var(--ink); }
+
   .calc-row {
     display: grid;
     grid-template-columns: 7rem minmax(0, 1fr);
@@ -216,13 +233,13 @@
 <body>
 
 <header class="site-header">
-  <div class="wrap">
+  <div class="wrap wrap-wide">
     <a class="wordmark" href="../">Caisse à outils</a>
     <nav class="site-nav" aria-label="Navigation"><a href="../">Tous les outils</a></nav>
   </div>
 </header>
 
-<main class="wrap">
+<main class="wrap wrap-wide">
   <div class="page-intro">
     <span class="tape">Sport</span>
     <h1>Course à pied</h1>
@@ -304,24 +321,28 @@
     </section>
   </div>
 
-  <section class="block" aria-labelledby="equiv-title">
+  <section class="block" aria-labelledby="paces-title">
     <div class="block-head">
-      <h2 class="section-title" id="equiv-title">Équivalences 3 000 m</h2>
+      <h2 class="section-title" id="paces-title">Tableau des allures</h2>
     </div>
-    <p class="hint" id="equiv-note"></p>
-    <div class="table-wrap is-tall" id="equiv-wrap">
-      <table class="data-table">
+    <p class="hint" id="paces-note"></p>
+    <div class="table-wrap is-tall" id="paces-wrap">
+      <table class="data-table" id="paces-table">
         <thead>
           <tr>
-            <th scope="col" class="num">3 000 m</th>
-            <th scope="col" class="num">Min/km</th>
-            <th scope="col" class="num">5 km</th>
-            <th scope="col" class="num">10 km</th>
-            <th scope="col" class="num">Semi</th>
-            <th scope="col" class="num">Marathon</th>
+            <th scope="col" class="num sticky-col">Min/km</th>
+            <th scope="col" class="num">Km/h</th>
+            <th scope="col" class="num" data-col="0">3 km</th>
+            <th scope="col" class="num" data-col="1">5 km</th>
+            <th scope="col" class="num" data-col="2">10 km</th>
+            <th scope="col" class="num" data-col="3">15 km</th>
+            <th scope="col" class="num" data-col="4">20 km</th>
+            <th scope="col" class="num" data-col="5">Semi</th>
+            <th scope="col" class="num" data-col="6">30 km</th>
+            <th scope="col" class="num" data-col="7">Marathon</th>
           </tr>
         </thead>
-        <tbody id="equiv"></tbody>
+        <tbody id="paces"></tbody>
       </table>
     </div>
   </section>
@@ -360,14 +381,14 @@
     <summary>Comment c'est calculé</summary>
     <p>L'allure, c'est le temps divisé par la distance, et la vitesse en km/h vaut 3 600 divisé par l'allure en secondes. Quand tu changes la distance, on garde la dernière valeur que tu as tapée : ton temps ou ton allure.</p>
     <p>Les prédictions suivent la formule de Peter Riegel : temps visé = ton temps × (distance visée ÷ ta distance)<sup>1,06</sup>. Elle marche bien entre quelques minutes et environ 4 heures d'effort. Sur marathon, elle est souvent optimiste si tu manques de sorties longues.</p>
-    <p>Le tableau d'équivalences applique la même formule à des temps ronds sur 3 000 m, la distance classique d'un test sur piste.</p>
+    <p>Le tableau des allures, c'est simplement l'allure multipliée par la distance : le temps si tu tiens la même allure du début à la fin. Pour un objectif réaliste sur une distance plus longue que ta course, regarde plutôt les prédictions.</p>
     <p>L'estimation de VMA cherche la distance que tu tiendrais 6 minutes d'après la même formule, puis la convertit en km/h. Les zones sont les repères habituels en pourcentage de VMA ; ils varient d'un coureur à l'autre.</p>
     <p>Rien ne quitte la page. Tes dernières valeurs sont mémorisées dans ce navigateur.</p>
   </details>
 </main>
 
 <footer class="site-footer">
-  <div class="wrap">
+  <div class="wrap wrap-wide">
     <p>Tout est calculé dans ton navigateur.</p>
     <p><a href="https://github.com/leadrain-dot/tools/tree/main/course">Code source</a></p>
   </div>
@@ -390,9 +411,11 @@
     { km: MARATHON, label: 'Marathon' },
   ];
   const PREDICTED = [5, 10, SEMI, MARATHON];
-  // Abaque : temps sur 3 000 m de 9:00 à 20:00, toutes les 30 s.
-  const EQUIV_KM = 3;
-  const EQUIV_TIMES = Array.from({ length: 23 }, (_, i) => 540 + i * 30);
+  // Tableau des allures : de 2:30 à 9:00 /km, toutes les 5 s, temps à allure constante.
+  const PACE_FROM = 150;
+  const PACE_TO = 540;
+  const PACE_STEP = 5;
+  const PACE_COLUMNS = [3, 5, 10, 15, 20, SEMI, 30, MARATHON];
   const ZONES = [
     { name: 'Récupération', lo: 55, hi: 60, use: 'Footing très lent, retour au calme' },
     { name: 'Endurance fondamentale', lo: 60, hi: 70, use: 'La base : footings et sorties longues' },
@@ -406,6 +429,7 @@
 
   const $ = id => document.getElementById(id);
   const nf1 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const nf2 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const nfDist = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 4, useGrouping: false });
   const nfKm = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 });
   const p2 = n => String(n).padStart(2, '0');
@@ -605,38 +629,45 @@
     }));
   }
 
-  let equivMarked = null;
+  const paceRows = [];
+  let paceMarked = null;
 
-  function renderEquivalences() {
-    const mine = same(state.dist, EQUIV_KM) ? state.time : riegel(state.time, state.dist, EQUIV_KM);
-    let marked = -1;
-    EQUIV_TIMES.forEach((t, i) => { if (Math.abs(t - mine) <= 15) marked = i; });
-
-    $('equiv').replaceChildren(...EQUIV_TIMES.map((t, i) => {
+  // Les lignes ne dépendent de rien : on les construit une fois, puis on ne change que le surlignage.
+  function buildPaceTable() {
+    for (let pace = PACE_FROM; pace <= PACE_TO; pace += PACE_STEP) {
       const tr = document.createElement('tr');
-      if (i === marked) tr.className = 'is-ref';
-      tr.append(
-        cell(fmtDuration(t), 'num'),
-        cell(fmtDuration(t / EQUIV_KM), 'num'),
-        ...PREDICTED.map(km => cell(fmtDuration(riegel(t, EQUIV_KM, km)), 'num')),
-      );
-      return tr;
-    }));
+      if (pace % 60 === 0) tr.className = 'is-minute';
+      tr.append(cell(fmtDuration(pace), 'num sticky-col'), cell(nf2.format(3600 / pace), 'num'));
+      PACE_COLUMNS.forEach((km, i) => {
+        const td = cell(fmtDuration(pace * km), 'num');
+        td.dataset.col = i;
+        tr.append(td);
+      });
+      paceRows.push(tr);
+    }
+    $('paces').replaceChildren(...paceRows);
+  }
 
-    const where = same(state.dist, EQUIV_KM)
-      ? `ta course (${fmtDuration(mine)})`
-      : `ta course (≈ ${fmtDuration(mine)} sur 3 000 m)`;
-    $('equiv-note').textContent = marked >= 0
-      ? `Trouve ton temps sur 3 000 m et lis la ligne. En gras, celle de ${where}.`
-      : `Trouve ton temps sur 3 000 m et lis la ligne. ${where[0].toUpperCase() + where.slice(1)} sort du tableau, qui va de 9:00 à 20:00.`;
+  function renderPaceTable() {
+    const index = Math.round((state.pace - PACE_FROM) / PACE_STEP);
+    const marked = index >= 0 && index < paceRows.length ? index : -1;
+    paceRows.forEach((tr, i) => tr.classList.toggle('is-ref', i === marked));
 
-    // Fait défiler le tableau (pas la page) jusqu'à la ligne en gras quand elle change.
-    if (marked >= 0 && marked !== equivMarked) {
-      const wrap = $('equiv-wrap');
-      const row = $('equiv').children[marked];
+    const col = PACE_COLUMNS.findIndex(km => same(km, state.dist));
+    document.querySelectorAll('#paces-table [data-col]').forEach(c => c.classList.toggle('is-col', Number(c.dataset.col) === col));
+
+    const pace = `${fmtDuration(state.pace)} /km`;
+    $('paces-note').textContent = marked >= 0
+      ? `Le temps sur chaque distance à allure constante. En gras, la ligne de ton allure (${pace})${col >= 0 ? ' et la colonne de ta distance' : ''}.`
+      : `Le temps sur chaque distance à allure constante. Ton allure (${pace}) sort du tableau, qui va de 2:30 à 9:00 /km.`;
+
+    // Fait défiler le tableau (pas la page) jusqu'à ta ligne quand elle change.
+    if (marked >= 0 && marked !== paceMarked) {
+      const wrap = $('paces-wrap');
+      const row = paceRows[marked];
       wrap.scrollTop = row.offsetTop - wrap.clientHeight / 2 + row.offsetHeight / 2;
     }
-    equivMarked = marked;
+    paceMarked = marked;
   }
 
   function renderZones() {
@@ -679,7 +710,7 @@
     renderSummary();
     renderSplits();
     renderPredictions();
-    renderEquivalences();
+    renderPaceTable();
     renderZones();
     save();
   }
@@ -728,6 +759,7 @@
   writeSpeed();
   writeVma();
   $(`step-${state.step}`).checked = true;
+  buildPaceTable();
   update();
 })();
 </script>
